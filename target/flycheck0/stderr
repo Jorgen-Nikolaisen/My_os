@@ -1,0 +1,53 @@
+   0.008066419s  INFO prepare_target{force=false package_id=niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER) target="niko-os"}: cargo::core::compiler::fingerprint: fingerprint error for niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER)/Check { test: true }/TargetInner { name: "niko-os", doc: true, ..: with_path("/home/jornik/Dokumenter/skole/OS_MASTER/src/main.rs", Edition2021) }
+   0.008084555s  INFO prepare_target{force=false package_id=niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER) target="niko-os"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/jornik/Dokumenter/skole/OS_MASTER/target/riscv64gc-unknown-none-elf/debug/.fingerprint/niko-os-79cf503383e17bb1/test-bin-niko-os`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: cargo_util::paths::read_bytes
+   1: cargo_util::paths::read
+   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   3: cargo::core::compiler::fingerprint::prepare_target
+   4: cargo::core::compiler::compile
+   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   6: cargo::ops::cargo_compile::compile_ws
+   7: cargo::ops::cargo_compile::compile_with_exec
+   8: cargo::ops::cargo_compile::compile
+   9: cargo::commands::check::exec
+  10: <cargo::cli::Exec>::exec
+  11: cargo::main
+  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  13: std::rt::lang_start::<()>::{closure#0}
+  14: <&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/core/src/ops/function.rs:287:21
+  15: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe, i32>
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:581:40
+  16: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe>
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:544:19
+  17: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe, i32>
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panic.rs:359:14
+  18: std::rt::lang_start_internal::{closure#0}
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/rt.rs:175:24
+  19: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:581:40
+  20: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:544:19
+  21: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panic.rs:359:14
+  22: std::rt::lang_start_internal
+             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/rt.rs:171:5
+  23: main
+  24: __libc_start_call_main
+             at ./csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+  25: __libc_start_main_impl
+             at ./csu/../csu/libc-start.c:392:3
+  26: <unknown>
+   0.055603052s  INFO prepare_target{force=false package_id=niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER) target="niko-os"}: cargo::core::compiler::fingerprint: stale: changed "/home/jornik/Dokumenter/skole/OS_MASTER/src/main.rs"
+   0.055610977s  INFO prepare_target{force=false package_id=niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER) target="niko-os"}: cargo::core::compiler::fingerprint:           (vs) "/home/jornik/Dokumenter/skole/OS_MASTER/target/riscv64gc-unknown-none-elf/debug/.fingerprint/niko-os-c7dda5471d5bacff/dep-bin-niko-os"
+   0.055612992s  INFO prepare_target{force=false package_id=niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER) target="niko-os"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1787827790, nanos: 713211090 } < FileTime { seconds: 1787828795, nanos: 535972494 }
+   0.055635370s  INFO prepare_target{force=false package_id=niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER) target="niko-os"}: cargo::core::compiler::fingerprint: fingerprint dirty for niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER)/Check { test: false }/TargetInner { name: "niko-os", doc: true, ..: with_path("/home/jornik/Dokumenter/skole/OS_MASTER/src/main.rs", Edition2021) }
+   0.055642577s  INFO prepare_target{force=false package_id=niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER) target="niko-os"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/home/jornik/Dokumenter/skole/OS_MASTER/target/riscv64gc-unknown-none-elf/debug/.fingerprint/niko-os-c7dda5471d5bacff/dep-bin-niko-os", reference_mtime: FileTime { seconds: 1787827790, nanos: 713211090 }, stale: "/home/jornik/Dokumenter/skole/OS_MASTER/src/main.rs", stale_mtime: FileTime { seconds: 1787828795, nanos: 535972494 } }))
+    Checking niko-os v0.1.0 (/home/jornik/Dokumenter/skole/OS_MASTER)
+error: could not compile `niko-os` (bin "niko-os" test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
