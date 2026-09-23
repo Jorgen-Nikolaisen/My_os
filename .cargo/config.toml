@@ -3,6 +3,5 @@ target = "riscv64gc-unknown-none-elf"
 
 [target.riscv64gc-unknown-none-elf]
 linker = "rust-lld"
-rustflags = ["-C", "link-arg=-Tlinker.ld"]
+rustflags = ["-C", "link-arg=-Tkernel/linker.ld"]
 runner = "qemu-system-riscv64 -machine virt -nographic -bios none -kernel"
-

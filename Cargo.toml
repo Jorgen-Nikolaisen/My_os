@@ -1,13 +1,10 @@
-[package]
-name = "niko-os"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
+[workspace]
+members = ["kernel", "user"]
+default-members = ["kernel"]
+resolver = "2"
 
 [profile.dev]
 panic = "abort"
 
 [profile.release]
 panic = "abort"
-
