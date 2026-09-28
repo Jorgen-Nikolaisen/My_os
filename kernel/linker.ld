@@ -45,12 +45,15 @@ SECTIONS
 	_kernel_end = .;
 
 
-    /* User program image at a FIXED address.
-       Must match USER_BASE in kernel/src/main.rs and user/linker.ld. */
-    .user 0x80400000 : {
-        _user_start = .;
-        KEEP(*(.user))
-        KEEP(*(.user.*))
-        _user_end = .;
+    /* User images at FIXED addresses — must match build.rs USER_BINS */
+    .user_a 0x80400000 : {
+        _user_a_start = .;
+        KEEP(*(.user_a))
+        _user_a_end = .;
+    }
+    .user_b 0x80402000 : {
+        _user_b_start = .;
+        KEEP(*(.user_b))
+        _user_b_end = .;
     }
 }

@@ -1,5 +1,9 @@
 use crate::log_info;
 
+const EBADF: isize = -9;
+const EFAULT: isize = -14;
+
+
 #[repr(C)]
 pub struct TrapFrame {
     pub regs: [usize; 32],
@@ -22,6 +26,7 @@ const INT_S_EXTERNAL: usize = 9;
 
 const SYS_WRITE: usize = 64;
 const SYS_EXIT: usize = 93;
+const SYS_YIELD: usize = 124;  
 
 #[no_mangle]
 extern "C" fn trap_dispatch(tf: &mut TrapFrame) {
@@ -41,6 +46,12 @@ extern "C" fn trap_dispatch(tf: &mut TrapFrame) {
     } else {
         handle_exception(tf, code);
     }
+}
+
+fn user_ptr_ok(buf: usize, len: usize) -> bool {
+    let Some(end) = buf.checked_add(len) else { return false };
+    let ((ilo, ihi), (slo, shi)) = crate::task::current_mm();   
+    (buf >= ilo && end <= ihi) || (buf >= slo && end <= shi)
 }
 
 fn handle_interrupt(_tf: &mut TrapFrame, code: usize) {
@@ -88,10 +99,11 @@ fn handle_syscall(tf: &mut TrapFrame) {
             tf.regs[10] = ret as usize; // return value in a0
             tf.sepc += 4;               // skip the ecall
         }
-        SYS_EXIT => {
-            log_info!("syscall", "exit({})", tf.regs[10]);
-            crate::qemu_exit::exit_success(tf.regs[10] as u16);
+        SYS_YIELD => {
+            tf.sepc += 4;              // advance PAST the ecall before switching
+            crate::task::yield_now(); // frame stays safe on our kernel stack
         }
+        SYS_EXIT => crate::task::exit_current(tf.regs[10]),
         _ => {
             log_info!("syscall", "unknown syscall #{nr}");
             tf.regs[10] = usize::MAX; // -1
@@ -102,10 +114,11 @@ fn handle_syscall(tf: &mut TrapFrame) {
 
 fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     if fd != 1 {
-        return -9; // EBADF
+        return EBADF;
     }
-    // NOTE: a real kernel must validate buf/len before touching them.
-    // We trust the user for now — SUM=1 makes the read legal.
+    if !user_ptr_ok(buf as usize, len) {
+        return EFAULT;
+    }
     let slice = unsafe { core::slice::from_raw_parts(buf, len) };
     crate::uart::Uart::new().write_bytes(slice);
     len as isize

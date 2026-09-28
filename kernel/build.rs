@@ -1,51 +1,60 @@
 use std::process::Command;
 
+const USER_BINS: &[(&str, u64)] = &[("hello_a", 0x8040_0000), ("hello_b", 0x8040_2000)];
+
 fn main() {
-    println!("cargo:rerun-if-changed=../user/src/main.rs");
-    println!("cargo:rerun-if-changed=../user/linker.ld");
+    println!("cargo:rerun-if-changed=../user/src");
     println!("cargo:rerun-if-changed=../user/Cargo.toml");
 
-    let user_ld = format!(
-        "{}/../user/linker.ld",
-        std::env::var("CARGO_MANIFEST_DIR").unwrap()
-    );
+    std::fs::create_dir_all("../target/user/scripts").unwrap();
+    for (name, base) in USER_BINS {
+        // 1. generate this bin's linker script at its own base
+        let ld = format!("../target/user/scripts/{name}.ld");
+        std::fs::write(&ld, linker_script(*base)).unwrap();
+        let ld_abs = std::fs::canonicalize(&ld).unwrap();
 
-    let status = Command::new("cargo")
-        .args([
-            "build",
-            "--manifest-path", "../user/Cargo.toml",
-            "--target", "riscv64gc-unknown-none-elf",
-            "--target-dir", "../target/user",
-        ])
-        // CRITICAL: the parent cargo exports CARGO_ENCODED_RUSTFLAGS to 
-        // The nested cargo inherits it, and it takes PRECEDENCE over the
-        // RUSTFLAGS set below — so the user program would get linked with the
-        // kernel's script: wrong base, wrong entry order
-        .env_remove("CARGO_ENCODED_RUSTFLAGS")
-        .env_remove("RUSTFLAGS")
-        .env(
-            "RUSTFLAGS",
-            format!("-C link-arg=-T{} -C debuginfo=0", user_ld),
-        )
-        .status()
-        .expect("failed to run cargo for user program");
+        // 2. build it — isolated from kernel flags (same env_remove rule as before!)
+        let status = Command::new("cargo")
+            .args(["build", "--manifest-path", "../user/Cargo.toml",
+                   "--bin", name, "--target", "riscv64gc-unknown-none-elf",
+                   "--target-dir", "../target/user"])
+            .env_remove("CARGO_ENCODED_RUSTFLAGS")
+            .env_remove("RUSTFLAGS")
+            .env("RUSTFLAGS", format!("-C link-arg=-T{} -C debuginfo=0", ld_abs.display()))
+            .status().expect("failed to build user bin");
+        assert!(status.success(), "user bin {name} build failed");
 
-    assert!(status.success(), "user program build failed");
+        // 3. ELF -> flat binary
+        let elf = format!("../target/user/riscv64gc-unknown-none-elf/debug/{name}");
+        let bin = format!("../target/user/{name}.bin");
+        let st = Command::new(find_objcopy())
+            .args(["--strip-all", "-O", "binary", &elf, &bin])
+            .status().expect("no objcopy");
+        assert!(st.success(), "objcopy {name} failed");
 
+        // 4. hand bytes to rustc
+        let out = std::env::var("OUT_DIR").unwrap();
+        std::fs::copy(&bin, format!("{out}/{name}.bin")).unwrap();
+    }
+}
 
-    let user_elf = "../target/user/riscv64gc-unknown-none-elf/debug/user-program";
-    let user_bin = "../target/user/user.bin";
-
-    let status = Command::new(find_objcopy())
-        .args(["--strip-all", "-O", "binary", user_elf, user_bin])
-        .status()
-        .expect("no objcopy available (sudo apt install binutils)");
-    assert!(status.success(), "objcopy failed");
-
-
-    let out_dir = std::env::var("OUT_DIR").unwrap();
-    let bytes = std::fs::read(user_bin).expect("user.bin missing");
-    std::fs::write(format!("{out_dir}/user.bin.o"), bytes).unwrap();
+fn linker_script(base: u64) -> String {
+    format!(r#"OUTPUT_ARCH(riscv)
+ENTRY(_start)
+SECTIONS {{
+    . = {:#x};
+    .text : {{
+        KEEP(*(.text.entry))
+        *(.text .text.*)
+    }}
+    .rodata : ALIGN(4) {{ *(.rodata .rodata.*) *(.srodata .srodata.*) }}
+    .data : ALIGN(4) {{
+        PROVIDE(__global_pointer$ = . + 0x800);
+        *(.sdata .sdata.*) *(.data .data.*)
+    }}
+    .bss : ALIGN(4) {{ *(.sbss .sbss.*) *(.bss .bss.*) }}
+    /DISCARD/ : {{ *(.eh_frame) *(.comment) *(.debug_*) }}
+}}"#, base)
 }
 
 fn find_objcopy() -> String {
